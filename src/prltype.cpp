@@ -41,15 +41,15 @@ PRL_RESULT DisconnectFromConsole( PRL_HANDLE vm ) {
   return err;
 }
 
-PRL_RESULT SendScanCode( PRL_HANDLE vm, int scanCode ) {
+PRL_RESULT SendPrlKey( PRL_HANDLE vm, int prlKey ) {
   nanosleep((struct timespec[]){{0, 10000000}}, NULL);
   PRL_RESULT err;
-  if (scanCode < 0x80)
-    err = PrlDevKeyboard_SendKeyEvent( vm, scanCode, PKE_PRESS );
+  if (prlKey < 0x80)
+    err = PrlDevKeyboard_SendKeyEventEx( vm, (PRL_KEY)prlKey, PKE_PRESS );
   else
-    err = PrlDevKeyboard_SendKeyEvent( vm, scanCode - 0x80, PKE_RELEASE );
+     err = PrlDevKeyboard_SendKeyEventEx( vm, (PRL_KEY)(prlKey - 0x80), PKE_RELEASE );
   if (PRL_FAILED(err)) {
-      fprintf(stderr, "PrlDevKeyboard_SendKeyEvent returned with error: %s.\n", prl_result_to_string(err));
+      fprintf(stderr, "PrlDevKeyboard_SendKeyEventEx returned with error: %s.\n", prl_result_to_string(err));
       PrlApi_Deinit();
       PrlHandle_Free( vm );
   }
@@ -84,7 +84,7 @@ int main( int argc, char **argv ) {
     return err;
 
   for (int i = 0; i < argc - 2; i++) {
-    err = SendScanCode(hVm, scanCodes[i]);
+    err = SendPrlKey(hVm, scanCodes[i]);
     if (PRL_FAILED(err))
       return err;
   }
