@@ -1,3 +1,4 @@
+#include "SdkWrap.h"
 #include "ParallelsVirtualizationSDK/Parallels.h"
 #include <stdio.h>
 #include <stdlib.h>

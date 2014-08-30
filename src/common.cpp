@@ -1,14 +1,55 @@
+#include "SdkWrap.h"
 #include "ParallelsVirtualizationSDK/Parallels.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sstream>
+#include <iostream>
+
+std::string LocateParallelsDesktopBundle() {
+    FILE *fd = popen("mdfind \"kMDItemCFBundleIdentifier == "
+                     "'com.parallels.desktop.console'\" 2>&1", "r");
+    char buff[512];
+
+
+    std::stringstream out;
+    while(fgets(buff, sizeof(buff), fd)!=NULL){
+        out << buff;
+    }
+    int rc = pclose(fd);
+
+
+    if (rc == 0)
+    {
+        std::string res;
+        std::getline(out, res);
+        return res;
+    }
+    else
+        return std::string("");
+}
 
 PRL_RESULT LoginLocal(PRL_HANDLE &hServer) {
 
     PRL_HANDLE hJob, hJobResult = PRL_INVALID_HANDLE;
     PRL_RESULT err, nJobReturnCode = PRL_ERR_UNINITIALIZED;
 
+    std::string bundlePath = LocateParallelsDesktopBundle();
+    std::string sdkLib = bundlePath +
+        "/Contents/Frameworks/ParallelsVirtualizationSDK.framework/Versions/5/libprl_sdk.5.dylib";
+
+    if (bundlePath == "")
+    {
+        fprintf(stderr, "Parallels Desktop bundle not found\n");
+        return -1;
+    }
+
+    err = SdkWrap_Load(sdkLib.c_str());
+    if (PRL_FAILED(err)) {
+        fprintf(stderr, "SdkWrap_Load returned with error: %s.\n", prl_result_to_string(err));
+        return err;
+    }
     err = PrlApi_InitEx(PARALLELS_API_VER, PAM_DESKTOP, 0, 0);
     if (PRL_FAILED(err)) {
         fprintf(stderr, "PrlApi_InitEx returned with error: %s.\n", prl_result_to_string(err));
