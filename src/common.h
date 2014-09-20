@@ -1,4 +1,4 @@
-#include "ParallelsVirtualizationSDK/Parallels.h"
+#include "Parallels.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
